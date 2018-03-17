@@ -185,8 +185,8 @@ if [ ! -d "/tmp/sd/yi-hack-v3/bin" ]; then
 	mkdir -p /tmp/sd/yi-hack-v3/bin
 fi
 
-cp ${gdrive_dir}yi-hack3/lib/* /tmp/sd/yi-hack-v3/lib/
-cp ${gdrive_dir}yi-hack3/bin/* /tmp/sd/yi-hack-v3/bin/
+cp ${gdrive_dir}yi-hack-v3/lib/* /tmp/sd/yi-hack-v3/lib/
+cp ${gdrive_dir}yi-hack-v3/bin/* /tmp/sd/yi-hack-v3/bin/
 
 rm /bin/egrep
 rm /bin/expr
