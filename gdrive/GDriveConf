@@ -191,10 +191,12 @@ cp ${gdrive_dir}yi-hack-v3/bin/* /tmp/sd/yi-hack-v3/bin/
 rm /bin/egrep
 rm /bin/expr
 rm /bin/stat
+rm /bin/wc
 
 ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/egrep
 ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/expr
 ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/stat
+ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/wc
 
 sed -e 's/sh \/tmp\/sd\/gdrive\/GDrive\(Uploader\|Autoremover\)//g' -i /tmp/sd/yi-hack-v3/startup.sh
 echo "sh ${gdrive_dir}GDriveUploader" >> /tmp/sd/yi-hack-v3/startup.sh
