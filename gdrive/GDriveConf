@@ -2,11 +2,11 @@
 # GDriveConf version 0.5 by Alexandr Porunov https://github.com/porunov/xiaomi_gdrive
 # Google drive configuration script
 
-gdrive_dir="/home/hd1/gdrive/"
+gdrive_dir="/tmp/sd/gdrive/"
 
 renew_token(){
 	while [ 1 ] ;  do
-		${gdrive_dir}./curl --insecure -H "Host: www.googleapis.com" -H "Content-Type: application/x-www-form-urlencoded" --request POST -o ${gdrive_dir}conf/refreshed_token --data "client_id=${client_id}&client_secret=${client_secret}&refresh_token=${refresh_token}&grant_type=refresh_token" 'https://www.googleapis.com/oauth2/v4/token'
+		curl --insecure -H "Host: www.googleapis.com" -H "Content-Type: application/x-www-form-urlencoded" --request POST -o ${gdrive_dir}conf/refreshed_token --data "client_id=${client_id}&client_secret=${client_secret}&refresh_token=${refresh_token}&grant_type=refresh_token" 'https://www.googleapis.com/oauth2/v4/token'
 		if [ -f "${gdrive_dir}conf/refreshed_token" ]; then
 			if grep -q "access_token" ${gdrive_dir}conf/refreshed_token; then
 				break
@@ -56,7 +56,7 @@ configure(){
 
 	while [ 1 ] ;  do
 		read code
-		${gdrive_dir}./curl --insecure -H "Host: www.googleapis.com" -H "Content-Type: application/x-www-form-urlencoded" -d "code=${code}&client_id=${client_id}&client_secret=${client_secret}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&grant_type=authorization_code" -o ${gdrive_dir}conf/response https://www.googleapis.com/oauth2/v4/token
+		curl --insecure -H "Host: www.googleapis.com" -H "Content-Type: application/x-www-form-urlencoded" -d "code=${code}&client_id=${client_id}&client_secret=${client_secret}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&grant_type=authorization_code" -o ${gdrive_dir}conf/response https://www.googleapis.com/oauth2/v4/token
 		if grep -q "access_token" ${gdrive_dir}conf/response & grep -q "refresh_token" ${gdrive_dir}conf/response; then
 			break
 		else
@@ -86,14 +86,14 @@ configure(){
 	echo "Press Enter to show all folders. To show only root folders type 'root' without quotes and press Enter: "
 	read rootFolder
 
-	if [ "$rootFolder" = "root" ]; then 
+	if [ "$rootFolder" = "root" ]; then
 		rootFolder='%20and%20"root"%20in%20parents'
 	else
 		rootFolder=''
 	fi;
 
 	while [ 1 ] ;  do
-		${gdrive_dir}./curl --insecure -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request GET -o ${gdrive_dir}conf/gDriveFolders 'https://www.googleapis.com/drive/v2/files?q=mimeType="application/vnd.google-apps.folder"%20and%20trashed=false'$rootFolder'&fields=items(id,title)'
+		curl --insecure -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request GET -o ${gdrive_dir}conf/gDriveFolders 'https://www.googleapis.com/drive/v2/files?q=mimeType="application/vnd.google-apps.folder"%20and%20trashed=false'$rootFolder'&fields=items(id,title)'
 		if grep -q "items" ${gdrive_dir}conf/gDriveFolders ; then
 			break
 		else
@@ -134,7 +134,7 @@ configure(){
 	folder_id='root'
 
 	if LC_ALL=C awk 'BEGIN{exit(!(ARGV[1] ~ /^[0-9]+$/))}' "$folder_number"
-		then 
+		then
 		if [ $folder_number -lt $i ]; then
 			if [ $folder_number -gt 0 ]; then
 				folder_id=$(sed -n "${folder_number}p" ${gdrive_dir}conf/gDriveFolersIds)
@@ -153,7 +153,7 @@ configure(){
 
 	read autoremove
 
-	if [ "${autoremove}" = "1" ]; then 
+	if [ "${autoremove}" = "1" ]; then
 		autoremove='on'
 	else
 		autoremove='off'
@@ -177,13 +177,28 @@ if [ ! -d ${gdrive_dir}tmp ]; then
   mkdir ${gdrive_dir}tmp
 fi
 
-cp ${gdrive_dir}libusr/* /home/libusr/
+if [ ! -d "/tmp/sd/yi-hack-v3/lib" ]; then
+	mkdir -p /tmp/sd/yi-hack-v3/lib
+fi
 
-sed -e 's/sh \/home\/hd1\/gdrive\/GDrive\(Uploader\|Autoremover\)//g' -i /home/init.sh
-echo "sh ${gdrive_dir}GDriveUploader" >> /home/init.sh
-echo "sh ${gdrive_dir}GDriveAutoremover" >> /home/init.sh
+if [ ! -d "/tmp/sd/yi-hack-v3/bin" ]; then
+	mkdir -p /tmp/sd/yi-hack-v3/bin
+fi
 
-chmod +x /home/libusr/libz.so* ${gdrive_dir}GDriveUploader ${gdrive_dir}GDriveAutoremover ${gdrive_dir}JSON.sh ${gdrive_dir}curl
+cp ${gdrive_dir}yi-hack3/lib/* /tmp/sd/yi-hack-v3/lib/
+cp ${gdrive_dir}yi-hack3/bin/* /tmp/sd/yi-hack-v3/bin/
+
+rm /bin/egrep
+rm /bin/expr
+rm /bin/stat
+
+ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/egrep
+ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/expr
+ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/stat
+
+sed -e 's/sh \/tmp\/sd\/gdrive\/GDrive\(Uploader\|Autoremover\)//g' -i /tmp/sd/yi-hack-v3/startup.sh
+echo "sh ${gdrive_dir}GDriveUploader" >> /tmp/sd/yi-hack-v3/startup.sh
+echo "sh ${gdrive_dir}GDriveAutoremover" >> /tmp/sd/yi-hack-v3/startup.sh
 
 if [ -f ${gdrive_dir}gdrive_folder.index ]; then
 	rm ${gdrive_dir}gdrive_folder.index

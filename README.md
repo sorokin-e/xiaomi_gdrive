@@ -10,7 +10,6 @@ Google drive loader for xiaomi smart ip camera. xiaomi_gdrive let you automatica
 3. Copy next folders into your microSD:
 
   ```
-  test
   gdrive
   ```
   
@@ -71,7 +70,7 @@ Google drive loader for xiaomi smart ip camera. xiaomi_gdrive let you automatica
 11. Run GDriveConf to configure your Google Drive access:
 
   ```
-  sh /home/hd1/gdrive/GDriveConf
+  sh /tmp/sd/gdrive/GDriveConf
   ```
 
 12. Paste your client id and press enter

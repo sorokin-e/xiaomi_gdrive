@@ -2,7 +2,7 @@
 # GDriveAutoremover version 0.5 by Alexandr Porunov https://github.com/porunov/xiaomi_gdrive
 # Google drive autoremover
 
-gdrive_dir="/home/hd1/gdrive/"
+gdrive_dir="/tmp/sd/gdrive/"
 total_space=0
 used_space=0
 sleep_time=0
@@ -43,7 +43,7 @@ check_log_file(){
 renew_token(){
 	while [ 1 ] ;  do
 		wait_until_proper_hours
-		${gdrive_dir}./curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Content-Type: application/x-www-form-urlencoded" --request POST -o ${gdrive_dir}conf/refreshed_token --data "client_id=${client_id}&client_secret=${client_secret}&refresh_token=${refresh_token}&grant_type=refresh_token" 'https://www.googleapis.com/oauth2/v4/token' > /dev/null
+		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Content-Type: application/x-www-form-urlencoded" --request POST -o ${gdrive_dir}conf/refreshed_token --data "client_id=${client_id}&client_secret=${client_secret}&refresh_token=${refresh_token}&grant_type=refresh_token" 'https://www.googleapis.com/oauth2/v4/token' > /dev/null
 		if [ -f "${gdrive_dir}conf/refreshed_token" ]; then
 			if grep -q "access_token" ${gdrive_dir}conf/refreshed_token; then
 				break
@@ -145,7 +145,7 @@ get_space_info(){
 	check_token
 	while [ 1 ] ;  do
 	        wait_until_proper_hours
-		${gdrive_dir}./curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request GET  -o ${gdrive_dir}tmp/spaceInfo "https://www.googleapis.com/drive/v2/about?fields=quotaBytesTotal,quotaBytesUsed" > /dev/null
+		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request GET  -o ${gdrive_dir}tmp/spaceInfo "https://www.googleapis.com/drive/v2/about?fields=quotaBytesTotal,quotaBytesUsed" > /dev/null
 		if [ -f "${gdrive_dir}tmp/spaceInfo" ]; then
 			total_space=$(cat "${gdrive_dir}tmp/spaceInfo" | ${gdrive_dir}./JSON.sh -b | egrep '\["quotaBytesTotal"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 			used_space=$(cat "${gdrive_dir}tmp/spaceInfo" | ${gdrive_dir}./JSON.sh -b | egrep '\["quotaBytesUsed"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
@@ -174,7 +174,7 @@ get_folder_list(){
 	check_token
 	while [ 1 ] ;  do
 	        wait_until_proper_hours
-		${gdrive_dir}./curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request GET  -o ${gdrive_dir}tmp/folderListToRemove "https://www.googleapis.com/drive/v2/files?q='${folder_id}'%20in%20parents%20and%20mimeType='application/vnd.google-apps.folder'%20and%20trashed=false&orderBy=createdDate&maxResults=${1}&fields=items(id,title)" > /dev/null
+		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request GET  -o ${gdrive_dir}tmp/folderListToRemove "https://www.googleapis.com/drive/v2/files?q='${folder_id}'%20in%20parents%20and%20mimeType='application/vnd.google-apps.folder'%20and%20trashed=false&orderBy=createdDate&maxResults=${1}&fields=items(id,title)" > /dev/null
 		if [ -f "${gdrive_dir}tmp/folderListToRemove" ]; then
 			if ! grep -q "items" ${gdrive_dir}tmp/folderListToRemove; then
 				response_code=$(cat "${gdrive_dir}tmp/folderListToRemove" | ${gdrive_dir}./JSON.sh -b | egrep '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
@@ -203,7 +203,7 @@ remove_folder(){
 	check_token
 	while [ 1 ] ;  do
 	        wait_until_proper_hours
-		${gdrive_dir}./curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request DELETE  -o ${gdrive_dir}tmp/removedFolder "https://www.googleapis.com/drive/v2/files/${1}" > /dev/null
+		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request DELETE  -o ${gdrive_dir}tmp/removedFolder "https://www.googleapis.com/drive/v2/files/${1}" > /dev/null
 		if [ -f "${gdrive_dir}tmp/removedFolder" ]; then
 			response_code=$(cat "${gdrive_dir}tmp/folderListToRemove" | ${gdrive_dir}./JSON.sh -b | egrep '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 			if [ "${response_code}" = "401" ]; then
