@@ -225,9 +225,9 @@ start_autoremover(){
 	while [ 1 ] ;  do
 		get_space_info
 		let_space=`expr ${total_space} - ${min_free_space}`
-		if [ ${used_space} -gt ${let_space} ]; then
+		if [ $(( ${used_space} > ${let_space} )) -eq 1 ]; then
 			let_space=`expr ${total_space} - ${prefer_free_space}`
-			while [ ${used_space} -gt ${let_space} ]; do
+			while [ $(( ${used_space} > ${let_space} )) -eq 1 ]; do
 				folders_count=$(echo ${used_space} ${let_space} | awk '{ printf "%.0f", ($1 - $2) / 251658240 + 1}')
 				get_folder_list ${folders_count}
 				i=0
