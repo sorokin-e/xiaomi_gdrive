@@ -50,9 +50,11 @@ renew_token(){
 			else
 				echo "ERROR: $(date) : Your refresh_token might has reached the limit. Please configure your google drive access again. Please use configuration scipt."
 				echo "ERROR: $(date) : Check ${gdrive_dir}conf/refreshed_token for detailed information"
+				echo $(cat ${gdrive_dir}tmp/refreshed_token)
 			fi
 		else
 			echo "WARNING: $(date) : Can not refresh token. Please check internet conectivity"
+			echo $(cat ${gdrive_dir}tmp/refreshed_token)
 		fi
 		check_log_file
 		sleep 15
@@ -156,6 +158,7 @@ get_space_info(){
 					renew_token
 				else
 					echo "WARNING: $(date) : Can not get quota info. Something happen. Trying to get quota info again"
+					echo $(cat ${gdrive_dir}tmp/spaceInfo)
 					sleep 5
 				fi
 			else
@@ -164,6 +167,7 @@ get_space_info(){
 			fi
 		else
 			echo "WARNING: $(date) : Can not get quota info. Please check internet conectivity"
+			echo $(cat ${gdrive_dir}tmp/spaceInfo)
 			sleep 15
 		fi
 		check_log_file
@@ -183,6 +187,7 @@ get_folder_list(){
 					renew_token
 				else
 					echo "WARNING: $(date) : Can not get folders. Something happen. Trying to get folders. again"
+					echo $(cat ${gdrive_dir}tmp/folderListToRemove)
 					sleep 5
 				fi
 			else
@@ -193,6 +198,7 @@ get_folder_list(){
 			fi
 		else
 			echo "WARNING: $(date) : Can not get folders. Please check internet conectivity"
+			echo $(cat ${gdrive_dir}tmp/folderListToRemove)
 			sleep 15
 		fi
 		check_log_file

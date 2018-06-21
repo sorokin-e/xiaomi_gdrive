@@ -52,6 +52,7 @@ renew_token(){
 			fi
 		else
 			echo "WARNING: $(date) : Can not refresh token. Please check internet conectivity"
+			echo $(cat ${gdrive_dir}conf/refreshed_token)
 		fi
 		check_log_file
 		sleep 15
@@ -149,6 +150,7 @@ create_dir(){
 					renew_token
 				else
 					echo "WARNING: $(date) : Can not create dir. Something happen. Trying to create new dir again"
+					echo $(cat ${gdrive_dir}tmp/lastDirInfo)
 					sleep 5
 				fi
 			else
@@ -157,6 +159,7 @@ create_dir(){
 			fi
 		else
 			echo "WARNING: $(date) : Can not create dir. Please check internet conectivity"
+			echo $(cat ${gdrive_dir}tmp/lastDirInfo)
 			sleep 15
 		fi
 		check_log_file
@@ -271,6 +274,7 @@ sendFile(){
 					renew_token
 				else
 					echo "WARNING: $(date) : Can not send the file ${record_dir}${current_dir}/${1}. Something happen. Trying to send the file again"
+					echo $(cat ${gdrive_dir}tmp/lastFileInfo)
 					sleep 5
 				fi
 			else
@@ -278,6 +282,7 @@ sendFile(){
 			fi
 		else
 			echo "WARNING: $(date) : Can not send file. Please check internet conectivity"
+			echo $(cat ${gdrive_dir}tmp/lastFileInfo)
 			sleep 15
 		fi
 		check_log_file
@@ -313,6 +318,7 @@ sendMatadata(){
 			    fi
 			    if [ "${upload_file_id}" = "" ]; then
 				    echo "WARNING: $(date) : Something wrong happen when metadata of the file was sending. Trying to send metadata of the file again"
+				    echo $(cat ${gdrive_dir}tmp/lastFileMetadataInfo)
 				    sleep 5
 				    else
 				    sendFile "${1}" "${upload_file_id}"
@@ -324,12 +330,14 @@ sendMatadata(){
 			      renew_token
 			      else
 			      echo "WARNING: $(date) : Can not send metadata of the file. Something happen. Trying to send metadata of the file again"
+                  echo $(cat ${gdrive_dir}tmp/lastFileMetadataInfo)
 			      sleep 5
 			    fi
 			fi
 
 		else
 			echo "WARNING: $(date) : Can not send metadata of the file. Please check internet conectivity"
+			echo $(cat ${gdrive_dir}tmp/lastFileMetadataInfo)
 			sleep 15
 		fi
 		check_log_file
