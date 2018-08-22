@@ -87,7 +87,7 @@ str_to_time(){
 
 get_next_dir(){
 	newDir=""
-	for n in $(ls -1 ${record_dir} | grep -v tmp); do
+	for n in $(ls -1 ${record_dir} | grep -iv tmp); do
         if [ "$(expr ${current_dir} \< ${n})" = "1" ]; then
             newDir=$(echo ${n})
             break
@@ -98,7 +98,7 @@ get_next_dir(){
 
 get_next_file(){
 	result=""
-	for n in $(ls -1 ${record_dir}${current_dir} | grep -v tmp); do
+	for n in $(ls -1 ${record_dir}${current_dir} | grep -iv tmp); do
 		if [ "$(expr ${current_file} \< ${n})" = "1" ] && [ "$(echo -n $n | tail -c 4)" = ".mp4" ]; then
 			result=$(echo ${n})
 			break
@@ -109,7 +109,7 @@ get_next_file(){
 
 newest_dir(){
 	result=""
-	for n in $(ls -1r ${record_dir} | grep -v tmp); do
+	for n in $(ls -1r ${record_dir} | grep -iv tmp); do
 	    result=$(echo ${n})
 	    break
     done
@@ -118,7 +118,7 @@ newest_dir(){
 
 oldest_dir(){
 	result=""
-	for n in $(ls -1 ${record_dir} | grep -v tmp); do
+	for n in $(ls -1 ${record_dir} | grep -iv tmp); do
 	    result=$(echo ${n})
 	    break
     done
@@ -127,7 +127,7 @@ oldest_dir(){
 
 get_oldest_file(){
 	result=""
-	for n in $(ls -1 ${record_dir}${current_dir} | grep -v tmp); do
+	for n in $(ls -1 ${record_dir}${current_dir} | grep -iv tmp); do
 		if [ "$(echo -n $n | tail -c 4)" = ".mp4" ]; then
 			result=$(echo ${n})
 			break
@@ -363,7 +363,7 @@ finish_current_dir_uploads(){
 wait_for_new_file(){
 	wait_finish_time=`expr $(date +%s) + 60`
 	while [ ${wait_finish_time} -gt $(date +%s) ] ;  do
-		new_files_count=$(ls ${record_dir}${next_dir} | grep -v tmp | wc -l)
+		new_files_count=$(ls ${record_dir}${next_dir} | grep -iv tmp | wc -l)
 		if [ ${new_files_count} -gt 0 ]; then
 			break
 		else
