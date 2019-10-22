@@ -177,30 +177,30 @@ if [ ! -d ${gdrive_dir}tmp ]; then
   mkdir ${gdrive_dir}tmp
 fi
 
-if [ ! -d "/tmp/sd/yi-hack-v3/lib" ]; then
-	mkdir -p /tmp/sd/yi-hack-v3/lib
+if [ ! -d "/tmp/sd/yi-hack-v4/lib" ]; then
+	mkdir -p /tmp/sd/yi-hack-v4/lib
 fi
 
-if [ ! -d "/tmp/sd/yi-hack-v3/bin" ]; then
-	mkdir -p /tmp/sd/yi-hack-v3/bin
+if [ ! -d "/tmp/sd/yi-hack-v4/bin" ]; then
+	mkdir -p /tmp/sd/yi-hack-v4/bin
 fi
 
-cp ${gdrive_dir}yi-hack-v3/lib/* /tmp/sd/yi-hack-v3/lib/
-cp ${gdrive_dir}yi-hack-v3/bin/* /tmp/sd/yi-hack-v3/bin/
+cp ${gdrive_dir}yi-hack-v4/lib/* /tmp/sd/yi-hack-v4/lib/
+cp ${gdrive_dir}yi-hack-v4/bin/* /tmp/sd/yi-hack-v4/bin/
 
 rm /bin/egrep
 rm /bin/expr
 rm /bin/stat
 rm /bin/wc
 
-ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/egrep
-ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/expr
-ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/stat
-ln -s /tmp/sd/yi-hack-v3/bin/busybox-1.28.1 /bin/wc
+ln -s /tmp/sd/yi-hack-v4/bin/busybox /bin/egrep
+ln -s /tmp/sd/yi-hack-v4/bin/busybox /bin/expr
+ln -s /tmp/sd/yi-hack-v4/bin/busybox /bin/stat
+ln -s /tmp/sd/yi-hack-v4/bin/busybox /bin/wc
 
-sed -e 's/sh \/tmp\/sd\/gdrive\/GDrive\(Uploader\|Autoremover\)//g' -i /tmp/sd/yi-hack-v3/startup.sh
-echo "sh ${gdrive_dir}GDriveUploader" >> /tmp/sd/yi-hack-v3/startup.sh
-echo "sh ${gdrive_dir}GDriveAutoremover" >> /tmp/sd/yi-hack-v3/startup.sh
+sed -e 's/sh \/tmp\/sd\/gdrive\/GDrive\(Uploader\|Autoremover\)//g' -i /tmp/sd/yi-hack-v4/startup.sh
+echo "sh ${gdrive_dir}GDriveUploader" >> /tmp/sd/yi-hack-v4/startup.sh
+echo "sh ${gdrive_dir}GDriveAutoremover" >> /tmp/sd/yi-hack-v4/startup.sh
 
 if [ -f ${gdrive_dir}gdrive_folder.index ]; then
 	rm ${gdrive_dir}gdrive_folder.index
