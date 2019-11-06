@@ -6,7 +6,7 @@ Google drive uploader for xiaomi smart ip camera. xiaomi_gdrive let you automati
 ### Step-by-step instruction for installing xiaomi_gdrive
 
 1. Turn off your camera and get microSD
-2. Download xiaomi_gdrive and unzip it (https://github.com/avengermsoft/xiaomi_gdrive/archive/master.zip)
+2. Download xiaomi_gdrive and unzip it (https://github.com/bobi/xiaomi_gdrive/archive/master.zip)
 3. Copy next folders into your microSD:
 
   ```
