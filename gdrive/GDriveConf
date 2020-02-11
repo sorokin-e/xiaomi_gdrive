@@ -2,12 +2,9 @@
 # GDriveConf version 0.5 by Alexandr Porunov https://github.com/porunov/xiaomi_gdrive
 # Google drive configuration script
 
-if [ -d "/usr/yi-hack-v4" ]; then
-  YI_HACK_PREFIX="/home/hd1"
-elif [ -d "/home/yi-hack-v4" ]; then
-  YI_HACK_PREFIX="/tmp/sd"
-fi
+YI_HACK_PREFIX="/tmp/sd"
 gdrive_dir="$YI_HACK_PREFIX/gdrive/"
+record_dir="$YI_HACK_PREFIX/record/"
 
 renew_token(){
 	while [ 1 ] ;  do
@@ -25,16 +22,17 @@ renew_token(){
 		check_log_file
 		sleep 15
 	done
-	access_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | egrep '\["access_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+	access_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | grep -E '\["access_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 	if grep -q "refresh_token" ${gdrive_dir}conf/refreshed_token; then
-		refresh_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | egrep '\["refresh_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+		refresh_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | grep -E '\["refresh_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 	fi
 	echo "access_token='${access_token}'" > ${gdrive_dir}conf/gdrive_token.conf
 	echo "refresh_token='${refresh_token}'" >> ${gdrive_dir}conf/gdrive_token.conf
 
 	if grep -q "expires_in" ${gdrive_dir}conf/refreshed_token; then
-		expiretion_time=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | egrep '\["expires_in"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
-		expires_in=`expr $expiretion_time + $(date +%s)`;
+		expiretion_time=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | grep -E '\["expires_in"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+		#expires_in=`expr $expiretion_time + $(date +%s)`;
+		expires_in=$(($expiretion_time + $(date +%s)));
 		echo "expires_in=${expires_in}" >> ${gdrive_dir}conf/gdrive_token.conf
 	fi
 	rm ${gdrive_dir}conf/refreshed_token
@@ -72,16 +70,17 @@ configure(){
 	echo "client_id='${client_id}'" > ${gdrive_dir}conf/gdrive.conf
 	echo "client_secret='${client_secret}'" >> ${gdrive_dir}conf/gdrive.conf
 
-	access_token=$(cat "${gdrive_dir}conf/response" | ${gdrive_dir}./JSON.sh -b | egrep '\["access_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+	access_token=$(cat "${gdrive_dir}conf/response" | ${gdrive_dir}./JSON.sh -b | grep -E '\["access_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 	if grep -q "refresh_token" ${gdrive_dir}conf/response; then
-		refresh_token=$(cat "${gdrive_dir}conf/response" | ${gdrive_dir}./JSON.sh -b | egrep '\["refresh_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+		refresh_token=$(cat "${gdrive_dir}conf/response" | ${gdrive_dir}./JSON.sh -b | grep -E '\["refresh_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 	fi
 	echo "access_token='${access_token}'" > ${gdrive_dir}conf/gdrive_token.conf
 	echo "refresh_token='${refresh_token}'" >> ${gdrive_dir}conf/gdrive_token.conf
 
 	if grep -q "expires_in" ${gdrive_dir}conf/response; then
-		expiretion_time=$(cat "${gdrive_dir}conf/response" | ${gdrive_dir}./JSON.sh -b | egrep '\["expires_in"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
-		expires_in=`expr $expiretion_time + $(date +%s)`;
+		expiretion_time=$(cat "${gdrive_dir}conf/response" | ${gdrive_dir}./JSON.sh -b | grep -E '\["expires_in"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+		#expires_in=`expr $expiretion_time + $(date +%s)`;
+		expires_in=$(($expiretion_time + $(date +%s)));
 		echo "expires_in=${expires_in}" >> ${gdrive_dir}conf/gdrive_token.conf
 	fi
 	rm ${gdrive_dir}conf/response
@@ -118,8 +117,8 @@ configure(){
 		rm ${gdrive_dir}conf/gDriveFolersTitles
 	fi
 
-	cat ${gdrive_dir}conf/gDriveFolders | ${gdrive_dir}./JSON.sh -b | egrep '\["items",[0-9]+,"id"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g' >> ${gdrive_dir}conf/gDriveFolersIds
-	cat ${gdrive_dir}conf/gDriveFolders | ${gdrive_dir}./JSON.sh -b | egrep '\["items",[0-9]+,"title"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g' >> ${gdrive_dir}conf/gDriveFolersTitles
+	cat ${gdrive_dir}conf/gDriveFolders | ${gdrive_dir}./JSON.sh -b | grep -E '\["items",[0-9]+,"id"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g' >> ${gdrive_dir}conf/gDriveFolersIds
+	cat ${gdrive_dir}conf/gDriveFolders | ${gdrive_dir}./JSON.sh -b | grep -E '\["items",[0-9]+,"title"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g' >> ${gdrive_dir}conf/gDriveFolersTitles
 
 	rm ${gdrive_dir}conf/gDriveFolders
 
@@ -127,7 +126,8 @@ configure(){
 
 	while read line; do
 		echo "${i} - ${line}"
-		i=`expr $i + 1`
+		#i=`expr $i + 1`
+		i=$(($i+1))
 	done < ${gdrive_dir}conf/gDriveFolersTitles
 
 	rm ${gdrive_dir}conf/gDriveFolersTitles
@@ -182,31 +182,30 @@ if [ ! -d ${gdrive_dir}tmp ]; then
   mkdir ${gdrive_dir}tmp
 fi
 
-if [ ! -d "$YI_HACK_PREFIX/yi-hack-v4/lib" ]; then
-	mkdir -p $YI_HACK_PREFIX/yi-hack-v4/lib
-fi
+#if [ ! -d "$YI_HACK_PREFIX/yi-hack-v4/lib" ]; then
+#	mkdir -p $YI_HACK_PREFIX/yi-hack-v4/lib
+#fi
 
-if [ ! -d "$YI_HACK_PREFIX/yi-hack-v4/bin" ]; then
-	mkdir -p $YI_HACK_PREFIX/yi-hack-v4/bin
-fi
+#if [ ! -d "$YI_HACK_PREFIX/yi-hack-v4/bin" ]; then
+#	mkdir -p $YI_HACK_PREFIX/yi-hack-v4/bin
+#fi
 
-cp ${gdrive_dir}yi-hack-v4/lib/* $YI_HACK_PREFIX/yi-hack-v4/lib/
-cp ${gdrive_dir}yi-hack-v4/bin/* $YI_HACK_PREFIX/yi-hack-v4/bin/
+#cp ${gdrive_dir}yi-hack-v4/lib/* $YI_HACK_PREFIX/yi-hack-v4/lib/
+#cp ${gdrive_dir}yi-hack-v4/bin/* $YI_HACK_PREFIX/yi-hack-v4/bin/
 
-rm /bin/egrep
-rm /bin/expr
-rm /bin/stat
-rm /bin/wc
+#rm /bin/egrep
+#rm /bin/expr
+#rm /bin/stat
+#rm /bin/wc
 
-ln -s $YI_HACK_PREFIX/yi-hack-v4/bin/busybox /bin/egrep
-ln -s $YI_HACK_PREFIX/yi-hack-v4/bin/busybox /bin/expr
-ln -s $YI_HACK_PREFIX/yi-hack-v4/bin/busybox /bin/stat
-ln -s $YI_HACK_PREFIX/yi-hack-v4/bin/busybox /bin/wc
+#ln -s $YI_HACK_PREFIX/yi-hack-v4/bin/busybox /bin/egrep
+#ln -s $YI_HACK_PREFIX/yi-hack-v4/bin/busybox /bin/expr
+#ln -s $YI_HACK_PREFIX/yi-hack-v4/bin/busybox /bin/stat
+#ln -s $YI_HACK_PREFIX/yi-hack-v4/bin/busybox /bin/wc
 
-sed -e 's/sh \/tmp\/sd\/gdrive\/GDrive\(Uploader\|Autoremover\)//g' -i $YI_HACK_PREFIX/yi-hack-v4/startup.sh
-sed -e 's/sh \/home\/hd1\/gdrive\/GDrive\(Uploader\|Autoremover\)//g' -i $YI_HACK_PREFIX/yi-hack-v4/startup.sh
-echo "sh ${gdrive_dir}GDriveUploader" >> $YI_HACK_PREFIX/yi-hack-v4/startup.sh
-echo "sh ${gdrive_dir}GDriveAutoremover" >> $YI_HACK_PREFIX/yi-hack-v4/startup.sh
+sed -e 's/sh \/tmp\/sd\/gdrive\/GDrive\(Uploader\|Autoremover\)//g' -i $YI_HACK_PREFIX/yi-hack/startup.sh
+echo "sh ${gdrive_dir}GDriveUploader" >> $YI_HACK_PREFIX/yi-hack/startup.sh
+echo "sh ${gdrive_dir}GDriveAutoremover" >> $YI_HACK_PREFIX/yi-hack/startup.sh
 
 if [ -f ${gdrive_dir}gdrive_folder.index ]; then
 	rm ${gdrive_dir}gdrive_folder.index

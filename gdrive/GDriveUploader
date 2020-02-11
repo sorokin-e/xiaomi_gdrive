@@ -2,11 +2,7 @@
 # GDriveUploader version 0.5 by Alexandr Porunov https://github.com/porunov/xiaomi_gdrive
 # Google drive uploader
 
-if [ -d "/usr/yi-hack-v4" ]; then
-  YI_HACK_PREFIX="/home/hd1"
-elif [ -d "/home/yi-hack-v4" ]; then
-  YI_HACK_PREFIX="/tmp/sd"
-fi
+YI_HACK_PREFIX="/tmp/sd"
 gdrive_dir="$YI_HACK_PREFIX/gdrive/"
 record_dir="$YI_HACK_PREFIX/record/"
 next_dir=""
@@ -27,9 +23,9 @@ wait_until_proper_hours(){
       break
     else
       if [ ${current_time} -le ${start_time} ]; then
-	sleep_time=`expr ${start_time} - ${current_time}`
+	sleep_time=$((${start_time} - ${current_time}))
       else
-	sleep_time=`expr 86400 - ${current_time} + ${start_time}`
+	sleep_time=$((86400 - ${current_time} + ${start_time}))
       fi
     fi
     sleep ${sleep_time}
@@ -37,7 +33,7 @@ wait_until_proper_hours(){
 }
 
 check_log_file(){
-	if [ $(stat -c %s ${log}) -gt 524288 ]; then
+	if [ $(ls -ls ${log}| awk '{print $6}') -gt 524288 ]; then
 		tail -100 ${log} > ${log}.new
 		mv ${log}.new ${log}
 		rm ${log}.new
@@ -62,16 +58,16 @@ renew_token(){
 		check_log_file
 		sleep 15
 	done
-	export access_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | egrep '\["access_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+	export access_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | grep -E '\["access_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 	if grep -q "refresh_token" ${gdrive_dir}conf/refreshed_token; then
-		export refresh_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | egrep '\["refresh_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+		export refresh_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | grep -E '\["refresh_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 	fi
 	echo "access_token='${access_token}'" > ${gdrive_dir}conf/gdrive_token.conf
 	echo "refresh_token='${refresh_token}'" >> ${gdrive_dir}conf/gdrive_token.conf
 
 	if grep -q "expires_in" ${gdrive_dir}conf/refreshed_token; then
-		expiretion_time=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | egrep '\["expires_in"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
-		export expires_in=`expr $expiretion_time + $(date +%s)`;
+		expiretion_time=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | grep -E '\["expires_in"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+		export expires_in=$(($expiretion_time + $(date +%s)));
 		echo "expires_in=${expires_in}" >> ${gdrive_dir}conf/gdrive_token.conf
 	fi
 	rm ${gdrive_dir}conf/refreshed_token
@@ -93,7 +89,7 @@ str_to_time(){
 get_next_dir(){
 	newDir=""
 	for n in $(ls -1 ${record_dir} | grep -iv tmp); do
-        if [ "$(expr ${current_dir} \< ${n})" = "1" ]; then
+        if [ "$current_dir" \< "$n" ]; then
             newDir=$(echo ${n})
             break
         fi
@@ -104,7 +100,7 @@ get_next_dir(){
 get_next_file(){
 	result=""
 	for n in $(ls -1 ${record_dir}${current_dir} | grep -iv tmp); do
-		if [ "$(expr ${current_file} \< ${n})" = "1" ] && [ "$(echo -n $n | tail -c 4)" = ".mp4" ]; then
+		if [ "$current_file" \< "$n" ] && [ "$(echo -n $n | tail -c 4)" = ".mp4" ]; then
 			result=$(echo ${n})
 			break
 		fi
@@ -147,9 +143,9 @@ create_dir(){
 		wait_until_proper_hours
 		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" -H "Content-Type: application/json" --data "{'title': '${1}', 'parents': [{'id': '${folder_id}'}], 'mimeType': 'application/vnd.google-apps.folder'}" --request POST -o ${gdrive_dir}tmp/lastDirInfo 'https://www.googleapis.com/drive/v2/files?fields=id' > /dev/null
 		if [ -f "${gdrive_dir}tmp/lastDirInfo" ]; then
-			google_dir_id=$(cat "${gdrive_dir}tmp/lastDirInfo" | ${gdrive_dir}./JSON.sh -b | egrep '\["id"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g')
+			google_dir_id=$(cat "${gdrive_dir}tmp/lastDirInfo" | ${gdrive_dir}./JSON.sh -b | grep -E '\["id"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g')
 			if [ "${google_dir_id}" = "" ]; then
-				response_code=$(cat "${gdrive_dir}tmp/lastDirInfo" | ${gdrive_dir}./JSON.sh -b | egrep '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+				response_code=$(cat "${gdrive_dir}tmp/lastDirInfo" | ${gdrive_dir}./JSON.sh -b | grep -E '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 				if [ "${response_code}" = "401" ]; then
 					echo "WARNING: $(date) : Can not create dir. Token was expired. Trying to refresh token and create new dir again"
 					renew_token
@@ -183,7 +179,7 @@ generate_oldest_dir(){
 		create_dir ${current_dir}
 		echo "current_dir='${current_dir}'" > ${gdrive_dir}gdrive_folder.index
 		echo "google_dir_id='${google_dir_id}'" >> ${gdrive_dir}gdrive_folder.index
-		next_time=`expr $(str_to_time "${current_dir}00M00S") + 3600`
+		next_time=$(($(str_to_time "${current_dir}00M00S") + 3600))
 	else
 		google_dir_id=""
 	fi
@@ -269,11 +265,11 @@ sendFile(){
 	tries=0
 	while [ 1 ] ;  do
 	        wait_until_proper_hours
-		curl --insecure -s --max-time 1200 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" -H "Content-Length: $(stat -c %s ${record_dir}${current_dir}/${1})" -H "Content-Type: video/mp4" --request PUT -T ${record_dir}${current_dir}/${1} -o ${gdrive_dir}tmp/lastFileInfo "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=${2}"
+		curl --insecure -s --max-time 1200 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" -H "Content-Length: $(ls -ls ${record_dir}${current_dir}/${1}| awk '{print $6}')" -H "Content-Type: video/mp4" --request PUT -T ${record_dir}${current_dir}/${1} -o ${gdrive_dir}tmp/lastFileInfo "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=${2}"
 		if [ -f "${gdrive_dir}tmp/lastFileInfo" ]; then
-			file_id=$(cat "${gdrive_dir}tmp/lastFileInfo" | ${gdrive_dir}./JSON.sh -b | egrep '\["id"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g')
+			file_id=$(cat "${gdrive_dir}tmp/lastFileInfo" | ${gdrive_dir}./JSON.sh -b | grep -E '\["id"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g')
 			if [ "${file_id}" = "" ]; then
-				response_code=$(cat "${gdrive_dir}tmp/lastFileInfo" | ${gdrive_dir}./JSON.sh -b | egrep '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+				response_code=$(cat "${gdrive_dir}tmp/lastFileInfo" | ${gdrive_dir}./JSON.sh -b | grep -E '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 				if [ "${response_code}" = "401" ]; then
 					echo "WARNING: $(date) : Can not send the file ${record_dir}${current_dir}/${1}. Token was expired. Trying to refresh token and send file again"
 					renew_token
@@ -296,7 +292,7 @@ sendFile(){
 		fi
 		ping -q -c2 8.8.8.8 > /dev/null
 		if [ $? -eq 0 ]; then
-		    tries=`expr $tries + 1`
+		    tries=$(($tries + 1))
 		fi
 		if [ $tries -gt $max_connect_tries ]; then
 			echo "WARNING: $(date) : Can not send the file ${record_dir}${current_dir}/${1}. May be it is too big. File was skipped"
@@ -314,12 +310,12 @@ sendMatadata(){
 	jsonData="{'name': '${1}', parents: ['${google_dir_id}']}"
 	while [ 1 ] ;  do
 	        wait_until_proper_hours
-		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" -H "Content-Length: $(expr length "${jsonData}")" -H "Content-Type: application/json; charset=UTF-8" -H "X-Upload-Content-Type: video/mp4" -H "X-Upload-Content-Length: $(stat -c %s ${record_dir}${current_dir}/${1})" --request POST  --data "${jsonData}" -D ${gdrive_dir}tmp/lastFileMetadataInfo "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable" > /dev/null
+		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" -H "Content-Length: $(echo "${jsonData}" | awk '{print length}')" -H "Content-Type: application/json; charset=UTF-8" -H "X-Upload-Content-Type: video/mp4" -H "X-Upload-Content-Length: $(ls -ls ${record_dir}${current_dir}/${1}| awk '{print $6}')" --request POST  --data "${jsonData}" -D ${gdrive_dir}tmp/lastFileMetadataInfo "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable" > /dev/null
 		if [ -f "${gdrive_dir}tmp/lastFileMetadataInfo" ]; then
 			if grep -q "200 OK" ${gdrive_dir}tmp/lastFileMetadataInfo && ( grep -q "Location" ${gdrive_dir}tmp/lastFileMetadataInfo || grep -q "X-GUploader-UploadID" ${gdrive_dir}tmp/lastFileMetadataInfo; ); then
-			    upload_file_id=$(cat ${gdrive_dir}tmp/lastFileMetadataInfo | egrep 'X-GUploader-UploadID:' | sed 's/.*\ //g' | tr -d '\n' | tr -d '\r')
+			    upload_file_id=$(cat ${gdrive_dir}tmp/lastFileMetadataInfo | grep -E 'X-GUploader-UploadID:' | sed 's/.*\ //g' | tr -d '\n' | tr -d '\r')
 			    if [ "${upload_file_id}" = "" ]; then
-				upload_file_id=$(cat ${gdrive_dir}tmp/lastFileMetadataInfo | egrep 'Location:' | sed 's/.*upload_id=//g' | sed 's/&.*//g' | tr -d '\n' | tr -d '\r')
+				upload_file_id=$(cat ${gdrive_dir}tmp/lastFileMetadataInfo | grep -E 'Location:' | sed 's/.*upload_id=//g' | sed 's/&.*//g' | tr -d '\n' | tr -d '\r')
 			    fi
 			    if [ "${upload_file_id}" = "" ]; then
 				    echo "WARNING: $(date) : Something wrong happen when metadata of the file was sending. Trying to send metadata of the file again"
@@ -366,9 +362,9 @@ finish_current_dir_uploads(){
 }
 
 wait_for_new_file(){
-	wait_finish_time=`expr $(date +%s) + 60`
+	wait_finish_time=$(($(date +%s) + 60))
 	while [ ${wait_finish_time} -gt $(date +%s) ] ;  do
-		new_files_count=$(ls ${record_dir}${next_dir} | grep -iv tmp | wc -l)
+		new_files_count=$(ls ${record_dir}${next_dir} | grep -iv tmp | grep -c ^)
 		if [ ${new_files_count} -gt 0 ]; then
 			break
 		else
@@ -379,7 +375,7 @@ wait_for_new_file(){
 
 uploadFiles(){
 	if [ "${current_dir}" != "" ] && [ ${next_time} -eq 0 ]; then
-		next_time=`expr $(str_to_time "${current_dir}00M00S") + 3600`
+		next_time=$(($(str_to_time "${current_dir}00M00S") + 3600))
 	fi
 	if [ "${current_dir_file}" != "" ]; then
 		current_file=$(echo ${current_dir_file} |  cut -c 15-24)
@@ -402,7 +398,7 @@ uploadFiles(){
 				create_dir ${current_dir}
 				echo "current_dir='${current_dir}'" > ${gdrive_dir}gdrive_folder.index
 				echo "google_dir_id='${google_dir_id}'" >> ${gdrive_dir}gdrive_folder.index
-				next_time=`expr $(str_to_time "${current_dir}00M00S") + 3600`
+				next_time=$(($(str_to_time "${current_dir}00M00S") + 3600))
 				generate_empty_current_file
 			else
 				break
