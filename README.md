@@ -98,35 +98,11 @@ Google drive uploader for xiaomi smart ip camera. xiaomi_gdrive let you automati
 How it works:
 The script in the loop will create the same folders as in the record folder and upload videos into Google Drive. After the reboot, or failure of the Internet script continues normally send files. If you have enabled automatic remove, GDriveAutoremover will check your free space every 45 minutes. In case when disk space is not enough, the script will erase old videos (IMPORTANT: do not put anything extra in the folder which is designed for video because GDriveAutoremover can remove it if it considers that the disk space is not enough).
 
-This scripts were tested under 1.8.5.1L firmware
+This scripts were tested under 4.5.0 firmware (Yi 1080p Home BFUS) 
 
 Troubleshooting:
 
 1. Your camera starts reboot from time to time. Your RAM is likely not enough. Turn off additional features which you have installed.
-   1. Turn off ftp server:
-   
-      ```
-      rm /etc/init.d/S89ftp
-      ```
-  
-   2. Turn off HTTP server
-      ```
-      rm /home/web/server
-      rm /home/web/record
-      ```
-      
-   3. Turn off RTSP server
-  
-      ```
-      rm /home/rtspsvr
-      mv /home/recv_X.726 /home/recv.726
-      ```
-  
-   4. Reboot your camera
-   
-      ```
-      reboot
-      ```
 
 2. Check if camera can send requests to the Internet.
   
