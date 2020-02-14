@@ -24,9 +24,9 @@ wait_until_proper_hours(){
       break
     else
       if [ ${current_time} -le ${start_time} ]; then
-	sleep_time=`expr ${start_time} - ${current_time}`
+	sleep_time=$((${start_time} - ${current_time}))
       else
-	sleep_time=`expr 86400 - ${current_time} + ${start_time}`
+	sleep_time=$((86400 - ${current_time} + ${start_time}))
       fi
     fi
     sleep ${sleep_time}
@@ -34,7 +34,7 @@ wait_until_proper_hours(){
 }
 
 check_log_file(){
-	if [ $(stat -c %s ${log}) -gt 524288 ]; then
+	if [ $(ls -ls ${log}| awk '{print $6}') -gt 524288 ]; then
 		tail -100 ${log} > ${log}.new
 		mv ${log}.new ${log}
 		rm ${log}.new
@@ -60,16 +60,16 @@ renew_token(){
 		check_log_file
 		sleep 15
 	done
-	export access_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | egrep '\["access_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+	export access_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | grep -E '\["access_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 	if grep -q "refresh_token" ${gdrive_dir}conf/refreshed_token; then
-		export refresh_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | egrep '\["refresh_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+		export refresh_token=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | grep -E '\["refresh_token"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 	fi
 	echo "access_token='${access_token}'" > ${gdrive_dir}conf/gdrive_token.conf
 	echo "refresh_token='${refresh_token}'" >> ${gdrive_dir}conf/gdrive_token.conf
 
 	if grep -q "expires_in" ${gdrive_dir}conf/refreshed_token; then
-		expiretion_time=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | egrep '\["expires_in"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
-		export expires_in=`expr $expiretion_time + $(date +%s)`;
+		expiretion_time=$(cat "${gdrive_dir}conf/refreshed_token" | ${gdrive_dir}./JSON.sh -b | grep -E '\["expires_in"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+		export expires_in=$(($expiretion_time + $(date +%s)));
 		echo "expires_in=${expires_in}" >> ${gdrive_dir}conf/gdrive_token.conf
 	fi
 	rm ${gdrive_dir}conf/refreshed_token
@@ -150,10 +150,10 @@ get_space_info(){
 	        wait_until_proper_hours
 		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request GET  -o ${gdrive_dir}tmp/spaceInfo "https://www.googleapis.com/drive/v2/about?fields=quotaBytesTotal,quotaBytesUsed" > /dev/null
 		if [ -f "${gdrive_dir}tmp/spaceInfo" ]; then
-			total_space=$(cat "${gdrive_dir}tmp/spaceInfo" | ${gdrive_dir}./JSON.sh -b | egrep '\["quotaBytesTotal"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
-			used_space=$(cat "${gdrive_dir}tmp/spaceInfo" | ${gdrive_dir}./JSON.sh -b | egrep '\["quotaBytesUsed"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+			total_space=$(cat "${gdrive_dir}tmp/spaceInfo" | ${gdrive_dir}./JSON.sh -b | grep -E '\["quotaBytesTotal"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+			used_space=$(cat "${gdrive_dir}tmp/spaceInfo" | ${gdrive_dir}./JSON.sh -b | grep -E '\["quotaBytesUsed"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 			if [ "${total_space}" = "" ] || [ "${used_space}" = "" ]; then
-				response_code=$(cat "${gdrive_dir}tmp/spaceInfo" | ${gdrive_dir}./JSON.sh -b | egrep '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+				response_code=$(cat "${gdrive_dir}tmp/spaceInfo" | ${gdrive_dir}./JSON.sh -b | grep -E '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 				if [ "${response_code}" = "401" ]; then
 					echo "WARNING: $(date) : Can not get quota info. Token was expired. Trying to refresh token and get quota info again"
 					renew_token
@@ -182,7 +182,7 @@ get_folder_list(){
 		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request GET  -o ${gdrive_dir}tmp/folderListToRemove "https://www.googleapis.com/drive/v2/files?q='${folder_id}'%20in%20parents%20and%20mimeType='application/vnd.google-apps.folder'%20and%20trashed=false&orderBy=createdDate&maxResults=${1}&fields=items(id,title)" > /dev/null
 		if [ -f "${gdrive_dir}tmp/folderListToRemove" ]; then
 			if ! grep -q "items" ${gdrive_dir}tmp/folderListToRemove; then
-				response_code=$(cat "${gdrive_dir}tmp/folderListToRemove" | ${gdrive_dir}./JSON.sh -b | egrep '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+				response_code=$(cat "${gdrive_dir}tmp/folderListToRemove" | ${gdrive_dir}./JSON.sh -b | grep -E '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 				if [ "${response_code}" = "401" ]; then
 					echo "WARNING: $(date) : Can not get folders. Token was expired. Trying to refresh token and get folders again"
 					renew_token
@@ -192,8 +192,8 @@ get_folder_list(){
 					sleep 5
 				fi
 			else
-				cat ${gdrive_dir}tmp/folderListToRemove | ${gdrive_dir}./JSON.sh -b | egrep '\["items",[0-9]+,"id"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g' >> ${gdrive_dir}/tmp/foldersIdsToRemove
-				cat ${gdrive_dir}tmp/folderListToRemove | ${gdrive_dir}./JSON.sh -b | egrep '\["items",[0-9]+,"title"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g' >> ${gdrive_dir}/tmp/foldersTitlesToRemove
+				cat ${gdrive_dir}tmp/folderListToRemove | ${gdrive_dir}./JSON.sh -b | grep -E '\["items",[0-9]+,"id"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g' >> ${gdrive_dir}/tmp/foldersIdsToRemove
+				cat ${gdrive_dir}tmp/folderListToRemove | ${gdrive_dir}./JSON.sh -b | grep -E '\["items",[0-9]+,"title"\]' | sed 's/\[.*\][^\"]*//g' | sed 's/\"//g' >> ${gdrive_dir}/tmp/foldersTitlesToRemove
 				rm ${gdrive_dir}tmp/folderListToRemove
 				break
 			fi
@@ -212,7 +212,7 @@ remove_folder(){
 	        wait_until_proper_hours
 		curl --insecure -s --max-time 100 -H "Host: www.googleapis.com" -H "Authorization: Bearer ${access_token}" --request DELETE  -o ${gdrive_dir}tmp/removedFolder "https://www.googleapis.com/drive/v2/files/${1}" > /dev/null
 		if [ -f "${gdrive_dir}tmp/removedFolder" ]; then
-			response_code=$(cat "${gdrive_dir}tmp/folderListToRemove" | ${gdrive_dir}./JSON.sh -b | egrep '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
+			response_code=$(cat "${gdrive_dir}tmp/folderListToRemove" | ${gdrive_dir}./JSON.sh -b | grep -E '\["error","code"\]' | sed 's/\[.*\][^\"0-9tf]*//g' | sed 's/\"//g')
 			if [ "${response_code}" = "401" ]; then
 				rm ${gdrive_dir}tmp/removedFolder
 				echo "WARNING: $(date) : Can not get folders. Token was expired. Trying to refresh token and get folders again"
@@ -231,9 +231,9 @@ remove_folder(){
 start_autoremover(){
 	while [ 1 ] ;  do
 		get_space_info
-		let_space=`expr ${total_space} - ${min_free_space}`
+		let_space=$((${total_space} - ${min_free_space}))
 		if [ $(( ${used_space} > ${let_space} )) -eq 1 ]; then
-			let_space=`expr ${total_space} - ${prefer_free_space}`
+			let_space=$((${total_space} - ${prefer_free_space}))
 			while [ $(( ${used_space} > ${let_space} )) -eq 1 ]; do
 				folders_count=$(echo ${used_space} ${let_space} | awk '{ printf "%.0f", ($1 - $2) / 251658240 + 1}')
 				get_folder_list ${folders_count}
@@ -242,7 +242,7 @@ start_autoremover(){
 					if [ "${folder_title_to_remove}" = "${current_dir}" ]; then
 						break
 					fi
-					i=`expr $i + 1`
+					i=$(($i + 1))
 					folder_id_to_remove=$(sed -n "${i}p" ${gdrive_dir}/tmp/foldersIdsToRemove)
 					remove_folder ${folder_id_to_remove}
 				done < ${gdrive_dir}/tmp/foldersTitlesToRemove
