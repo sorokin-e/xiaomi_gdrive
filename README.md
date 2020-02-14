@@ -43,13 +43,13 @@ Google drive uploader for xiaomi smart ip camera. xiaomi_gdrive let you automati
   
 5. Put microSD into your camera
 6. Turn on camera
-7. After turnung on a camera use telnet to connect to your camera (login: root, password: 1234qwer):
+7. After turnung on a camera use ssh to connect to your camera (login: root, password: 1234qwer):
 
   ```
-  telnet/ssh {YOUR_CAMERA_IP_ADDRESS}
-  Example: telnet 192.168.0.70
+  ssh {YOUR_CAMERA_IP_ADDRESS}
+  Example: ssh 192.168.0.70
   ```
-
+  
 8. Go to the browser
 9. Create your Google Drive application and OAuth keys for Google Drive API (example tutorial: http://www.iperiusbackup.net/en/how-to-enable-google-drive-api-and-get-client-credentials/)
   
@@ -116,38 +116,4 @@ Troubleshooting:
    ```
    route -n
    ```
-  
-   1. If your gateway isn't correct then add your gateway (Where 192.168.0.1 is your router IP address):
-      
-      ```
-      my_router_ip="192.168.0.1"
-      route add default gw ${my_router_ip} ra0
-      ```
-      
-   2. To have normal gateway after reboot run all next commands:
-    
-      ```
-      echo "#!/bin/sh" > /etc/init.d/S65route
-      echo "change_def_route(){" >> /etc/init.d/S65route
-      echo "route add default gw ${my_router_ip} ra0" >> /etc/init.d/S65route
-      echo "}" >> /etc/init.d/S65route
-      echo "change_def_route &" >> /etc/init.d/S65route
-      echo "exit 0" >> /etc/init.d/S65route
-      chmod +x vi /etc/init.d/S65route
-      echo "${my_router_ip}" > /tmp/gw1
-      ```
-  
-   3. Add public DNS
-      
-      ```
-      echo "nameserver 8.8.8.8" > /var/run/dhcpcd/resolv.conf/resolv.conf
-      echo "nameserver 8.8.8.8" > /etc/resolv.conf
-      ```
-  
-   4. Reboot your camera
-  
-      ```
-      reboot
-      ```
-
 ----
